@@ -1,2 +1,4 @@
-print('Hello World')
-print(3)
+print('Testing')
+def function():
+    x=3
+    return x
