@@ -44,7 +44,6 @@ name redshift m_effective error
 1997ap 0.830 24.32 0.22
 
 # low redshift supernova data
-# name, redshift, m_effective, error
 1990O 0.030 16.26 0.20
 1990af 0.050 17.63 0.18
 1992P 0.026 16.08 0.24
