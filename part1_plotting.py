@@ -12,6 +12,11 @@ from part1_results import best_L
 from part1_results import average_error
 from part1_results import chi2_min
 from part1_results import chi2_red
+from part1_results import L_values
+from part1_results import chi2_values
+from part1_results import sigma_L_minus
+from part1_results import sigma_L_plus
+
 
 z_obs = low_redshift_values[:,0]
 m_obs = low_redshift_values[:,1]
@@ -71,4 +76,19 @@ ax2.axhline(y=-1, color='grey', linestyle='--')
 ax2.set_xlabel('Count')
 ax2.tick_params(left=False, labelleft=False)  
 
+plt.show()
+
+
+#chi-squared for different peak luminosity values
+fig, ax = plt.subplots(figsize=(10, 8))
+ax.plot(np.log(L_values.value), chi2_values)
+ax.axhline(chi2_min, color = 'red', linestyle = '-')
+ax.axhline(chi2_min+1, color = 'red', linestyle = '--')
+ax.axvline(np.log(best_L.value), color = 'red', linestyle = '-')
+ax.axvline(np.log((best_L + sigma_L_plus).value), color = 'red', linestyle = '--')
+ax.axvline(np.log((best_L - sigma_L_minus).value), color = 'red', linestyle = '--')
+ax.set_xlabel('Peak luminosity')
+ax.set_ylabel('Chi-squared values')
+ax.set_xlim(74.5,75)
+ax.set_ylim(20,35)
 plt.show()
