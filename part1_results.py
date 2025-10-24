@@ -2,7 +2,6 @@ import numpy as np
 import astropy.units as u
 from astropy.constants import c
 from data_splitting import low_redshift_values
-from data_splitting import high_redshift_values
 from part1_defs import m_model
 from part1_defs import chi_squared
 
