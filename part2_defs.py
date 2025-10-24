@@ -22,7 +22,7 @@ def luminosity_distance(z, Omega_L):
     inv_H = (1 / Hz_SI).value #in seconds
     I_grid = cumtrapz(inv_H, z_grid, initial=0.0)
     I_interp = np.interp(z, z_grid, I_grid)
-    D_L = c * I_interp * u.m
+    D_L = c * I_interp * (1+z)
     return D_L
 
 #L is now W/Å

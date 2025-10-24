@@ -25,11 +25,15 @@ Omega_L_high = np.interp(chi2_threshold, chi2_values[best_index:], Omega_L_value
 sigma_OL_minus = best_Omega_L - Omega_L_low
 sigma_OL_plus = Omega_L_high - best_Omega_L
 average_error = (sigma_OL_minus + sigma_OL_plus) / 2
+print(best_Omega_L)
+print(sigma_OL_minus, sigma_OL_plus)
+print(average_error)
 
 #editing s.f. and d.p. for L and its error
 error_rounded = float(f"{average_error:.2g}")
 decimal_places = -int(np.floor(error_rounded))
 Omega_L_rounded = round(best_Omega_L, decimal_places)
+print(error_rounded:.{decimal_places}f)
 
 print(f"Best-fit Omega L = ({Omega_L_rounded:.{decimal_places}f} ± {error_rounded:.{decimal_places}f})")
 print(f"Minimum chi-squared = {chi2_min}")
