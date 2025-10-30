@@ -41,6 +41,6 @@ def chi_squared(Omega_L, data):
     m_mod = m_model(z, Omega_L)
     chi2 = np.sum(((m_obs - m_mod) / err)**2)
     N = len(m_obs)
-    chi2_red = chi2/N
+    chi2_red = chi2/(N-1)
     return chi2, chi2_red
 

@@ -23,6 +23,6 @@ def chi_squared(L, data):
     m_mod = m_model(z, L)
     chi2 = np.sum(((m_obs - m_mod) / err)**2)
     N = len(m_obs)  # number of data points
-    chi2_red = chi2 /N
+    chi2_red = chi2/(N-1)
     
     return chi2, chi2_red
