@@ -3,6 +3,7 @@ import astropy.units as u
 from astropy.constants import c
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from scipy.stats import norm
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from data_splitting import low_redshift_values
 from data_splitting import high_redshift_values
@@ -48,11 +49,19 @@ ax1.set_ylabel('Normalised Residuals',fontsize=14, fontweight='bold', fontname='
 
 #histogram of residuals
 ax2 = fig.add_subplot(gs[1, 1], sharey=ax1) 
-ax2.hist(residuals, bins=7, color='magenta', orientation='horizontal')
+ax2.hist(residuals, bins=9, color='magenta', orientation='horizontal', density=True)
 ax2.axhline(y=0, color='black')
 ax2.axhline(y=1, color='grey', linestyle='--')
 ax2.axhline(y=-1, color='grey', linestyle='--')
-ax2.set_xlabel('Count',fontsize=14, fontweight='bold', fontname='Arial')
+#model and actual Gaussian
+mu_resid, sigma_resid = np.mean(residuals), np.std(residuals)
+mu_perf, sigma_perf = 0, 1
+y = np.linspace(min(residuals), max(residuals), 100)
+pdf_resid = norm.pdf(y, mu_resid, sigma_resid)
+pdf_perf = norm.pdf(y, mu_perf, sigma_perf)
+ax2.plot(pdf_perf, y, color='grey', lw=2)
+ax2.plot(pdf_resid, y, color='purple', lw=3)
+ax2.set_xlabel('Probability Density',fontsize=14, fontweight='bold', fontname='Arial')
 ax2.tick_params(left=False, labelleft=False)  
 
 plt.show()
@@ -66,16 +75,17 @@ ax.hlines(chi2_min + 1, xmin=min(Omega_L_values), xmax=best_Omega_L+sigma_OL_plu
 ax.vlines(best_Omega_L, ymin=0, ymax=chi2_min, color='red', linestyles='-')
 ax.vlines(best_Omega_L + sigma_OL_plus, ymin=0, ymax=chi2_min+1,color='red', linestyles='--')
 ax.vlines(best_Omega_L - sigma_OL_minus, ymin=0, ymax=chi2_min+1,color='red', linestyles='--')
-ax.set_xlabel('Dark Energy Density Parameter', fontsize=20, fontweight='bold', fontname='Arial')
-ax.set_ylabel(r'Minimised $\mathbf{\chi^2}$', fontsize=20, fontweight='bold', fontname='Arial')
+ax.set_xlabel('Dark Energy Density Parameter', fontsize=22, fontweight='bold', fontname='Arial')
+ax.set_ylabel(r'Minimised $\mathbf{\chi^2}$', fontsize=22, fontweight='bold', fontname='Arial')
+ax.yaxis.set_label_coords(-0.1, 0.7)
 ax.set_xlim(0.35,0.7)
 ax.set_xticks([best_Omega_L, 0.35, 0.5, 0.65])
 ax.set_xticklabels([r'$\mathbf{Best\ \Omega_{\Lambda,0}}$','0.35','0.5','0.65'])
-ax.set_ylim(80,87)
+ax.set_ylim(80,86)
 ax.set_yticks([chi2_min, chi2_min+1, 80, 85])
 ax.set_yticklabels([r'$\mathbf{\chi^2_{min}}$',r'$\mathbf{\chi^2_{min} + 1}$','80','85'])
-ax.tick_params(axis='both', labelsize=15) 
+ax.tick_params(axis='both', labelsize=16) 
 textstr = (r"$\mathbf{\chi^2_{min}} = \mathbf{" + f"{chi2_min:.2f}" + r"}$" + "\n" r"$\mathbf{\chi^2_{red}} = \mathbf{" + f"{chi2_red:.2f}" + r"}$")
-ax.text(1.8, 2.6, textstr,transform=ax0.transAxes,fontsize=25,verticalalignment='top',horizontalalignment='left',alpha=0.9)
+ax.text(1.8, 2.6, textstr,transform=ax0.transAxes,fontsize=28,verticalalignment='top',horizontalalignment='left',alpha=0.9)
 fig.savefig("Poster_OL_chi2.png", dpi=300, bbox_inches='tight')
 plt.show()
