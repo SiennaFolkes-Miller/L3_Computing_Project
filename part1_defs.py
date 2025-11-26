@@ -9,7 +9,7 @@ f0 = 6.61e-12 * u.W / (u.m**2 * u.AA)
 #luminosity is in W/Å
 def m_model(z, L):
     #takes redshift and peak luminosity and returns model effective magnitude
-    dL = (c * z / H0).to(u.m)
+    dL = (1+z)*(c * z / H0).to(u.m)
     f = L / (4 * np.pi * dL**2) #note have ignored extra factor of (1+z)
     m = -2.5 * np.log10(f / f0)  #note have ignored extra factor of (1+z)
     return m.value  
