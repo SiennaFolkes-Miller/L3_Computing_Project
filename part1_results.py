@@ -25,6 +25,7 @@ sigma_L_minus = best_L - L_low
 sigma_L_plus = L_high - best_L
 average_error = (sigma_L_minus + sigma_L_plus) / 2
 
+print(best_L, average_error)
 #editing s.f. and d.p. for L and its error
 exponent = int(np.floor(np.log10(best_L.value)))
 scaled_L = best_L.value / 10**exponent

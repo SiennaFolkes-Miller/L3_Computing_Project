@@ -64,7 +64,7 @@ ax2.plot(pdf_resid, y, color='purple', lw=3)
 ax2.set_xlabel('Probability Density',fontsize=14, fontweight='bold', fontname='Arial')
 ax2.tick_params(left=False, labelleft=False)  
 
-plt.show()
+#plt.show()
 
 
 #chi-squared for different dark energy parameter values
@@ -87,5 +87,33 @@ ax.set_yticklabels([r'$\mathbf{\chi^2_{min}}$',r'$\mathbf{\chi^2_{min} + 1}$','8
 ax.tick_params(axis='both', labelsize=16) 
 textstr = (r"$\mathbf{\chi^2_{min}} = \mathbf{" + f"{chi2_min:.2f}" + r"}$" + "\n" r"$\mathbf{\chi^2_{red}} = \mathbf{" + f"{chi2_red:.2f}" + r"}$")
 ax.text(1.6, 2.6, textstr,transform=ax0.transAxes,fontsize=28,verticalalignment='top',horizontalalignment='left',alpha=0.9)
+#fig.savefig("Poster_OL_chi2.png", dpi=300, bbox_inches='tight')
+#plt.show()
+
+
+
+
+#for poster
+#chi-squared for different dark energy parameter values
+fig, ax = plt.subplots(figsize=(10, 8))
+ax.plot(Omega_L_values, chi2_values, linewidth=5, color='blue')
+ax.hlines(chi2_min, xmin=min(Omega_L_values), xmax=best_Omega_L,color='red', linestyles='-', linewidth=4)
+ax.hlines(chi2_min + 1, xmin=min(Omega_L_values), xmax=best_Omega_L+sigma_OL_plus,color='red', linestyles='--',linewidth=3)
+ax.vlines(best_Omega_L, ymin=0, ymax=chi2_min, color='red', linestyles='-',linewidth=4)
+ax.vlines(best_Omega_L + sigma_OL_plus, ymin=0, ymax=chi2_min+1,color='red', linestyles='--',linewidth=3)
+ax.vlines(best_Omega_L - sigma_OL_minus, ymin=0, ymax=chi2_min+1,color='red', linestyles='--',linewidth=3)
+#ax.fill_betweenx([chi2_min, chi2_min + 1],best_Omega_L - sigma_OL_minus,best_Omega_L + sigma_OL_plus,alpha=0.2)
+ax.set_xlabel('Dark Energy Density Parameter', fontsize=22, fontweight='bold', fontname='Arial')
+ax.set_ylabel(r'Minimised $\mathbf{\chi^2}$', fontsize=26, fontweight='bold', fontname='Arial')
+ax.yaxis.set_label_coords(-0.08, 0.7)
+ax.set_xlim(0.55,0.85)
+ax.set_xticks([best_Omega_L, 0.55, 0.65, 0.75,0.85])
+ax.set_xticklabels([r'$\mathbf{Best\ \Omega_{\Lambda,0}}$','0.55','0.65','0.75','0.85'])
+ax.set_ylim(80,86)
+ax.set_yticks([chi2_min, chi2_min+1, 80, 85])
+ax.set_yticklabels([r'$\mathbf{\chi^2_{min}}$',r'$\mathbf{\chi^2_{min} + 1}$','80','85'])
+ax.tick_params(axis='both', labelsize=18) 
+textstr = (r"$\mathbf{\chi^2_{min}} = \mathbf{" + f"{chi2_min:.2f}" + r"}$" + "\n" r"$\mathbf{\chi^2_{red}} = \mathbf{" + f"{chi2_red:.2f}" + r"}$")
+ax.text(1.9, 3.5, textstr,transform=ax0.transAxes,fontsize=28,verticalalignment='top',horizontalalignment='left',alpha=0.9)
 fig.savefig("Poster_OL_chi2.png", dpi=300, bbox_inches='tight')
 plt.show()
