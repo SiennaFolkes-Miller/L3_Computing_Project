@@ -31,7 +31,7 @@ exponent = int(np.floor(np.log10(best_L.value)))
 scaled_L = best_L.value / 10**exponent
 scaled_error = average_error.value / 10**exponent
 scaled_error_rounded = float(f"{scaled_error:.2g}")
-decimal_places = -int(np.floor(np.log10(scaled_error_rounded)))
+decimal_places = -int(np.floor(np.log10(scaled_error_rounded))-1)
 scaled_L_rounded = round(scaled_L, decimal_places)
 
 print(f"Best-fit L = ({scaled_L_rounded:.{decimal_places}f} ± {scaled_error_rounded:.{decimal_places}f})e{exponent} {best_L.unit}")

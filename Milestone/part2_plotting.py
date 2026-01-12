@@ -95,7 +95,7 @@ ax.text(1.6, 2.6, textstr,transform=ax0.transAxes,fontsize=28,verticalalignment=
 
 #for poster
 #chi-squared for different dark energy parameter values
-fig, ax = plt.subplots(figsize=(10, 8))
+fig, ax = plt.subplots(figsize=(10, 9))
 ax.plot(Omega_L_values, chi2_values, linewidth=5, color='blue')
 ax.hlines(chi2_min, xmin=min(Omega_L_values), xmax=best_Omega_L,color='red', linestyles='-', linewidth=4)
 ax.hlines(chi2_min + 1, xmin=min(Omega_L_values), xmax=best_Omega_L+sigma_OL_plus,color='red', linestyles='--',linewidth=3)

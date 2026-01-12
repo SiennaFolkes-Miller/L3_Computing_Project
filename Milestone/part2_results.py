@@ -31,6 +31,7 @@ error_rounded = float(f"{average_error:.1g}")
 decimal_places = -int(np.floor(np.log10(error_rounded)))
 Omega_L_rounded = round(best_Omega_L, decimal_places)
 
+print(best_Omega_L, average_error)
 print(f"Best-fit Omega L = ({Omega_L_rounded:.{decimal_places}f} ± {error_rounded:.{decimal_places}f})")
 print(f"Minimum chi-squared = {chi2_min}")
 print(f"Reduced chi-squared = {chi2_red}")
