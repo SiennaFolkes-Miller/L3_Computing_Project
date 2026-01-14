@@ -2,13 +2,13 @@ import numpy as np
 
 def load_scp_data(filename):
     """
-    Load SCP supernova data and extract:
-    redshift, effective magnitude, magnitude error.
+    Load Union supernova data and extract:
+    redshift, distance modulus, distance modulus error.
     """
-    
+
     redshift = []
-    m_eff = []
-    m_err = []
+    mu = []
+    mu_err = []
 
     with open(filename, 'r') as f:
         for line in f:
@@ -21,27 +21,26 @@ def load_scp_data(filename):
             # Split LaTeX table row
             parts = [p.strip() for p in line.split('&')]
 
-            # Need at least 3 columns
-            if len(parts) < 3:
+            # Need enough columns
+            if len(parts) < 7:
                 continue
 
             try:
                 # Redshift
                 z = float(parts[1])
 
-                # Magnitude and error: e.g. "19.27(0.05)"
-                mag_str = parts[2]
+                # Distance modulus: e.g. "35.35(0.22)"
+                mu_str = parts[5]
 
-                value, error = mag_str.split('(')
+                value, error = mu_str.split('(')
                 value = float(value)
                 error = float(error.rstrip(')'))
 
                 redshift.append(z)
-                m_eff.append(value)
-                m_err.append(error)
+                mu.append(value)
+                mu_err.append(error)
 
             except ValueError:
-                # Skip malformed rows
                 continue
 
-    return np.array(redshift), np.array(m_eff), np.array(m_err)
+    return np.array(redshift), np.array(mu), np.array(mu_err)

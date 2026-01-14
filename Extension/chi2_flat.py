@@ -3,7 +3,6 @@ from scipy.optimize import minimize
 from new_data_splitting import load_scp_data
 from model_flat import m_model
 from scipy.optimize import curve_fit
-from new_data_splitting import load_scp_data
 import matplotlib.pyplot as plt
 
 from old_data import low_redshift_values, high_redshift_values
@@ -12,7 +11,7 @@ z = data_all[:, 0]
 m = data_all[:, 1]           
 sigma_m = data_all[:, 2] 
 
-z, m, sigma_m = load_scp_data("SCP_data.tex")
+#z, m, sigma_m = load_scp_data("SCP_data.tex")
 
 
 def m_model_curvefit(z, Omega_L, L):
