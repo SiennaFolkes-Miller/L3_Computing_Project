@@ -3,7 +3,7 @@ import emcee
 import matplotlib.pyplot as plt
 import corner
 from new_data_splitting import load_scp_data
-from priors_posterior_curve import log_posterior_m  # new posterior that accepts Omega_L, Omega_k, L
+from priors_posterior_curve import log_posterior_m    # new posterior that accepts Omega_L, Omega_k, L
 from model_curve import m_model_curved  # curved model version
 
 def run_supernova_mcmc_m(
@@ -104,7 +104,7 @@ samples, acc, stats = run_supernova_mcmc_m(
     Omega_k_init=0.0,
     L_init=3e32,
     nwalkers=32,
-    nsteps=100,
+    nsteps=500,
     discard=10,
     thin=1
 )

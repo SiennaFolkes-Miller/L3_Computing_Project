@@ -3,8 +3,8 @@ import astropy.units as u
 from astropy.constants import c
 from scipy.integrate import cumulative_trapezoid as cumtrapz
 
-#H0 = 75 * (u.km / u.s / u.Mpc) 
-H0 = 67.36 * (u.km / u.s / u.Mpc) #from CMB prior paper, plus minus 0.54
+H0 = 75 * (u.km / u.s / u.Mpc) 
+#H0 = 67.36 * (u.km / u.s / u.Mpc) #from CMB prior paper, plus minus 0.54
 f0 = 6.61e-12 * u.W / (u.m**2 * u.AA)
 
 #Hubble parameter, takes z and dark energy density parameter

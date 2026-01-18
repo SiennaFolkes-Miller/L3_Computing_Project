@@ -3,7 +3,7 @@ import emcee
 import matplotlib.pyplot as plt
 import corner
 from new_data_splitting import load_scp_data
-from priors_posterior import log_posterior_m, log_posterior_mu, log_prior_m, log_prior_mu
+from priors_posterior_flat import log_posterior_m, log_posterior_mu, log_prior_m, log_prior_mu
 from model_flat import m_model, mu_model
 
 def run_supernova_mcmc_m(
@@ -93,7 +93,7 @@ samples, acc, stats = run_supernova_mcmc_m(
     Omega_L_init=0.7,
     L_init=3e32,
     nwalkers=32,
-    nsteps=100,
+    nsteps=500,
     discard=10,
     thin=1
 )
