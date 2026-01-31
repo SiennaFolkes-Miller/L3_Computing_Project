@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.optimize import minimize
-from new_data_splitting import load_scp_data
 from model_flat import m_model
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt

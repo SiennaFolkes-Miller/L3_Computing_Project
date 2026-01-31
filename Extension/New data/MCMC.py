@@ -12,57 +12,87 @@ def run_supernova_mcmc(
     Omega_L_init=0.7,
     Omega_k_init=0.0,
     H0_init=70.0,
-    flat=False,           # True = flat universe, Omega_k fixed
+    flat=False,          # True → Omega_k fixed = 0
+    fix_H0=False,        # True → H0 fixed
+    H0_fixed=70.0,
     nwalkers=32,
-    nsteps=500,
-    discard=100,
+    nsteps=200,
+    discard=40,
     thin=1,
     plot_chains=True,
     plot_corner=True
 ):
     """
-    Runs MCMC on supernova distance modulus data.
-    Automatically handles flat (ndim=2) vs curved (ndim=3) universes.
+    MCMC runner for supernova cosmology.
+
+    Supported cases:
+    ----------------
+    1D:  flat=True,  fix_H0=True        → ΩΛ
+    2D:  flat=True,  fix_H0=False       → ΩΛ, H0
+         flat=False, fix_H0=True        → ΩΛ, Ωk
+    3D:  flat=False, fix_H0=False       → ΩΛ, Ωk, H0
     """
 
     # ------------------------
-    # Set number of parameters
+    # Determine dimensionality
     # ------------------------
-    if flat:
-        ndim = 2  # Omega_L, H0
-    else:
-        ndim = 3  # Omega_L, Omega_k, H0
+    ndim = 1  # ΩΛ always sampled
+
+    if not flat:
+        ndim += 1  # Ωk
+
+    if not fix_H0:
+        ndim += 1  # H0
 
     # ------------------------
-    # Initialize walkers
+    # Initialise walkers
     # ------------------------
     pos = np.zeros((nwalkers, ndim))
+    idx = 0
 
-    # Omega_L
-    pos[:, 0] = Omega_L_init + 1e-2 * np.random.randn(nwalkers)
+    # ΩΛ
+    pos[:, idx] = Omega_L_init + 1e-2 * np.random.randn(nwalkers)
+    idx += 1
 
-    # Omega_k if curved
+    # Ωk
     if not flat:
-        pos[:, 1] = Omega_k_init + 1e-2 * np.random.randn(nwalkers)
+        pos[:, idx] = Omega_k_init + 1e-2 * np.random.randn(nwalkers)
+        idx += 1
 
     # H0
-    pos[:, -1] = H0_init + 0.5 * np.random.randn(nwalkers) # larger spread
+    if not fix_H0:
+        pos[:, idx] = H0_init + 0.5 * np.random.randn(nwalkers)
 
     # ------------------------
-    # Wrap posterior to handle fixed Omega_k
+    # Posterior wrapper
     # ------------------------
     def posterior_wrap(theta, z, mu_obs, mu_err):
-        if flat:
-            # Only sample Omega_L and H0, set Omega_k = 0
-            Omega_L, H0_val = theta
-            Omega_k = 0.0
-        else:
-            Omega_L, Omega_k, H0_val = theta
+        idx = 0
 
-        return log_posterior([Omega_L, Omega_k, H0_val], z, mu_obs, mu_err, flat=flat)
+        Omega_L = theta[idx]
+        idx += 1
+
+        if not flat:
+            Omega_k = theta[idx]
+            idx += 1
+        else:
+            Omega_k = 0.0
+
+        if not fix_H0:
+            H0_val = theta[idx]
+        else:
+            H0_val = H0_fixed
+
+        return log_posterior(
+            [Omega_L, Omega_k, H0_val],
+            z,
+            mu_obs,
+            mu_err,
+            flat=flat
+        )
 
     # ------------------------
-    # Set up sampler
+    # Run sampler
     # ------------------------
     sampler = emcee.EnsembleSampler(
         nwalkers,
@@ -71,9 +101,6 @@ def run_supernova_mcmc(
         args=(z, mu, sigma_mu)
     )
 
-    # ------------------------
-    # Run MCMC
-    # ------------------------
     sampler.run_mcmc(pos, nsteps, progress=True)
     samples = sampler.get_chain(discard=discard, thin=thin, flat=True)
 
@@ -81,25 +108,36 @@ def run_supernova_mcmc(
     print(f"Samples shape: {samples.shape}")
 
     # ------------------------
+    # Labels
+    # ------------------------
+    labels = [r"$\Omega_\Lambda$"]
+
+    if not flat:
+        labels.append(r"$\Omega_k$")
+
+    if not fix_H0:
+        labels.append(r"$H_0$")
+
+    # ------------------------
     # Trace plots
     # ------------------------
     if plot_chains:
-        if flat:
-            labels = [r"$\Omega_\Lambda$", r"$H_0$"]
-        else:
-            labels = [r"$\Omega_\Lambda$", r"$\Omega_k$", r"$H_0$"]
-
         fig, axes = plt.subplots(ndim, figsize=(10, 6), sharex=True)
+
+        if ndim == 1:
+            axes = [axes]
+
         for i in range(ndim):
             axes[i].plot(sampler.get_chain()[:, :, i], alpha=0.3)
             axes[i].set_ylabel(labels[i])
+
         axes[-1].set_xlabel("Step")
         plt.show()
 
     # ------------------------
     # Corner plot
     # ------------------------
-    if plot_corner:
+    if plot_corner and ndim > 1:
         corner.corner(
             samples,
             labels=labels,
@@ -110,7 +148,7 @@ def run_supernova_mcmc(
         plt.show()
 
     # ------------------------
-    # Compute statistics
+    # Parameter summaries
     # ------------------------
     stats = {}
     for i, name in enumerate(labels):
@@ -120,7 +158,14 @@ def run_supernova_mcmc(
 
     return samples, stats
 
+# 1D: ΩΛ only (flat, H0 fixed)
+run_supernova_mcmc(z, mu, sigma_mu, flat=True, fix_H0=True)
 
-#samples_flat, stats_flat = run_supernova_mcmc(z, mu, sigma_mu,flat=True,Omega_L_init=0.7,H0_init=70.0,nwalkers=32,nsteps=500)
+# 2D: ΩΛ + H0 (flat)
+run_supernova_mcmc(z, mu, sigma_mu, flat=True, fix_H0=False)
 
-samples_curve, stats_curve = run_supernova_mcmc(z, mu, sigma_mu,flat=False,Omega_L_init=0.7,Omega_k_init=0.0,H0_init=70.0,nwalkers=32,nsteps=500)
+# 2D: ΩΛ + Ωk (H0 fixed)
+#run_supernova_mcmc(z, mu, sigma_mu, flat=False, fix_H0=True)
+
+# 3D: ΩΛ + Ωk + H0
+run_supernova_mcmc(z, mu, sigma_mu, flat=False, fix_H0=False)
