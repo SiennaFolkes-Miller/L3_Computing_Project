@@ -2,7 +2,6 @@ import numpy as np
 import emcee
 import matplotlib.pyplot as plt
 import corner
-from new_data_splitting import load_scp_data
 from priors_posterior_curve import log_posterior_m    # new posterior that accepts Omega_L, Omega_k, L
 from model_curve import m_model_curved  # curved model version
 

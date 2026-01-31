@@ -60,31 +60,3 @@ def log_posterior_m(theta, z, m_obs, sigma_m):
 
     return lp + log_likelihood_m(theta, z, m_obs, sigma_m)
 
-
-
-#new data
-
-def log_prior_mu(theta):
-    Omega_L = theta[0]
-    if 0.0 <= Omega_L <= 1.5:
-        return 0.0
-    return -np.inf
-
-def log_likelihood_mu(theta, z, mu_obs, sigma_mu):
-
-    Omega_L = theta[0]  # only one parameter
-
-    # Predict distance modulus
-    mu_pred = mu_model(z, Omega_L)
-
-    # Gaussian log-likelihood
-    chi2 = np.sum(((mu_obs - mu_pred) / sigma_mu)**2)
-    return -0.5 * chi2
-
-def log_posterior_mu(theta, z, mu_obs, sigma_mu):
-    lp = log_prior_mu(theta)
-
-    if not np.isfinite(lp):
-        return -np.inf
-
-    return lp + log_likelihood_mu(theta, z, mu_obs, sigma_mu)

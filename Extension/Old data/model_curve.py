@@ -69,19 +69,3 @@ def m_model_curved(z, Omega_L, Omega_k, L):
     return m
 
 
-
-
-
-
-
-
-
-
-# ----------------------------------------
-# 5️⃣ Distance modulus model
-# ----------------------------------------
-def mu_model_curved(z, Omega_L, Omega_k):
-    D_L = luminosity_distance_curved(z, Omega_L, Omega_k)
-    D_L_pc = D_L.to(u.pc).value
-    mu = 5 * np.log10(D_L_pc / 10.0)
-    return mu

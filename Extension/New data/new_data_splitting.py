@@ -44,3 +44,5 @@ def load_scp_data(filename):
                 continue
 
     return np.array(redshift), np.array(mu), np.array(mu_err)
+
+z, mu, sigma_mu = load_scp_data("SCP_data.tex")

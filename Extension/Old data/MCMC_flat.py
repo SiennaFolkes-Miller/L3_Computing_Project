@@ -2,9 +2,8 @@ import numpy as np
 import emcee
 import matplotlib.pyplot as plt
 import corner
-from new_data_splitting import load_scp_data
-from priors_posterior_flat import log_posterior_m, log_posterior_mu, log_prior_m, log_prior_mu
-from model_flat import m_model, mu_model
+from priors_posterior_flat import log_posterior_m, log_prior_m
+from model_flat import m_model
 
 def run_supernova_mcmc_m(
     z,
@@ -98,75 +97,3 @@ samples, acc, stats = run_supernova_mcmc_m(
     thin=1
 )
 
-def run_supernova_mcmc_mu(
-    z,
-    mu,
-    sigma_mu,
-    Omega_L_init=0.7,
-    nwalkers=32,
-    nsteps=200,
-    discard=10,
-    thin=1,
-    plot_chains=True,
-    plot_corner=True
-):
-
-    ndim = 1  # only Omega_L for mu
-
-    # Initialize walkers around initial guess
-    pos = Omega_L_init + 1e-2 * np.random.randn(nwalkers, ndim)
-
-    # Set up sampler
-    sampler = emcee.EnsembleSampler(
-        nwalkers,
-        ndim,
-        log_posterior_mu,
-        args=(z, mu, sigma_mu)
-    )
-
-    # Run MCMC
-    sampler.run_mcmc(pos, nsteps, progress=True)
-
-    # Flatten chain
-    samples = sampler.get_chain(discard=discard, thin=thin, flat=True)
-
-    # Compute acceptance fraction
-    acceptance_frac = np.mean(sampler.acceptance_fraction)
-    print(f"Mean acceptance fraction: {acceptance_frac:.3f}")
-    print(f"Shape of samples: {samples.shape}")
-
-    # Plot walker chains
-    if plot_chains:
-        fig, axes = plt.subplots(ndim, 1, figsize=(8, 2*ndim))
-        if ndim == 1:
-            axes = [axes] 
-        labels = [r"$\Omega_\Lambda$"]
-        for i in range(ndim):
-            axes[i].plot(sampler.get_chain()[:, :, i], alpha=0.3)
-            axes[i].set_ylabel(labels[i])
-        axes[-1].set_xlabel("Step")
-        plt.show()
-
-    # Corner plot
-    if plot_corner:
-        labels = [r"$\Omega_\Lambda$"]
-        corner.corner(samples, labels=labels, quantiles=[0.16, 0.5, 0.84])
-        plt.show()
-
-    # Compute statistics
-    param_stats = {}
-    for i, name in enumerate(["Omega_Lambda"]):
-        p16, p50, p84 = np.percentile(samples[:, i], [16, 50, 84])
-        param_stats[name] = (p50, p50 - p16, p84 - p50)
-        print(f"{name} = {p50:.4g} -{p50 - p16:.4g} +{p84 - p50:.4g}")
-
-    return samples, acceptance_frac, param_stats
-
-
-
-z_mu, mu, sigma_mu = load_scp_data("SCP_data.tex")  
-
-
-#samples, acc, stats = run_supernova_mcmc_mu(z_mu,mu,sigma_mu,Omega_L_init=0.7,nwalkers=32,nsteps=100,discard=10,thin=1)
-
-#print(stats["Omega_Lambda"])

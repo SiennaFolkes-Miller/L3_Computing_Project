@@ -29,9 +29,3 @@ def m_model(z, Omega_L, L):
     f = L / (4 * np.pi * D_L**2)  # W / (m² Å)
     m = -2.5 * np.log10((f / f0).value)
     return m
-
-#new, fits distance modulus instead of magnitude
-def mu_model(z, Omega_L):
-    D_L = luminosity_distance(z, Omega_L) * (u.s)
-    D_L_pc = D_L.to(u.pc).value
-    return 5 * np.log10(D_L_pc / 10.0)
