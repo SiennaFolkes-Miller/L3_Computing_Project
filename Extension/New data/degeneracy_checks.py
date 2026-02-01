@@ -85,18 +85,19 @@ def plot_2d_degeneracy(samples, idx_x=0, idx_y=1, label_x=None, label_y=None,
 # -----------------------------
 # Main function: compare degeneracies
 # -----------------------------
-def compare_degeneracy(z, mu, sigma_mu, case="2D", output=True):
+def compare_degeneracy(z, mu, sigma_mu, case="2D", prior_type="flat", output=True):
     """
     Run inference with MCMC and Chi2, return degeneracy metrics
     case: '1D', '2D', '3D'
+    prior_type: "flat" or "gaussian" → determines prior used in MCMC
     """
     # Determine dimensionality and labels
     if case == "1D":
-        flat=True; fix_H0=True; labels=[r"$\Omega_\Lambda$"]
+        flat = True; fix_H0 = True; labels = [r"$\Omega_\Lambda$"]
     elif case == "2D":
-        flat=True; fix_H0=False; labels=[r"$\Omega_\Lambda$", r"$H_0$"]
+        flat = True; fix_H0 = False; labels = [r"$\Omega_\Lambda$", r"$H_0$"]
     elif case == "3D":
-        flat=False; fix_H0=False; labels=[r"$\Omega_\Lambda$", r"$\Omega_k$", r"$H_0$"]
+        flat = False; fix_H0 = False; labels = [r"$\Omega_\Lambda$", r"$\Omega_k$", r"$H_0$"]
     else:
         raise ValueError("case must be '1D','2D','3D'")
 
@@ -104,12 +105,17 @@ def compare_degeneracy(z, mu, sigma_mu, case="2D", output=True):
     # Run full dataset
     # ------------------------
     bf_chi2, _, _ = run_supernova_chi2(z, mu, sigma_mu, flat=flat, fix_H0=fix_H0, output=False)
-    samples_mcmc, stats_mcmc = run_supernova_mcmc(z, mu, sigma_mu, flat=flat, fix_H0=fix_H0, output=False)
 
-    # Convert chi2 best fits into array of "samples" by small perturbations to mimic covariance
-    # (since χ² minimization doesn't provide full posterior, we use asym errors if available)
-    # Here we just tile bf_chi2 for degeneracy metrics placeholder
-    samples_chi2 = np.tile(bf_chi2, (100,1))  # simple placeholder; for full use, sample along Δχ² contours
+    # Pass prior_type to MCMC
+    samples_mcmc, stats_mcmc = run_supernova_mcmc(
+        z, mu, sigma_mu,
+        flat=flat, fix_H0=fix_H0,
+        prior_type=prior_type,   # <-- NEW
+        output=False
+    )
+
+    # χ² "samples" placeholder
+    samples_chi2 = np.tile(bf_chi2, (100,1))  
 
     # ------------------------
     # Compute degeneracy metrics
@@ -139,6 +145,7 @@ def compare_degeneracy(z, mu, sigma_mu, case="2D", output=True):
 
     return metrics_chi2, metrics_mcmc
 
+
 # doesn't work for 1D
-metrics_chi2, metrics_mcmc = compare_degeneracy(z, mu, sigma_mu, case="2D")
-metrics_chi2, metrics_mcmc = compare_degeneracy(z, mu, sigma_mu, case="3D")
+metrics_chi2, metrics_mcmc = compare_degeneracy(z, mu, sigma_mu, case="2D", prior_type="flat")
+metrics_chi2, metrics_mcmc = compare_degeneracy(z, mu, sigma_mu, case="3D", prior_type="flat")

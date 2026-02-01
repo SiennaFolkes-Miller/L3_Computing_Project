@@ -5,9 +5,6 @@ from new_data_splitting import z, mu, sigma_mu
 import numpy as np
 import matplotlib.pyplot as plt
 
-import numpy as np
-import matplotlib.pyplot as plt
-
 # -----------------------------
 # Model configuration
 # -----------------------------
@@ -106,7 +103,7 @@ def run_loo(z, mu, sigma_mu, *, flat, fix_H0, n_samples=None, strategy="random")
 # -----------------------------
 # Plotting function
 # -----------------------------
-def plot_loo_distribution(values, label, method_name, true_value=None, bins=30):
+def plot_loo_distribution(values, label, method_name, true_value=None, bins=6):
     """
     Plot leave-one-out (LOO) distribution with mean, median, and optional true dataset value.
 
@@ -139,6 +136,9 @@ def plot_loo_distribution(values, label, method_name, true_value=None, bins=30):
     
     # Median
     plt.axvline(median, linestyle='-', color='green', linewidth=2, label=f"Median = {median:.4g}")
+
+    import matplotlib.ticker as ticker
+    plt.gca().xaxis.set_major_formatter(ticker.FormatStrFormatter('%.2f'))
     
     # True value (if given)
     if true_value is not None:
@@ -164,22 +164,12 @@ def plot_loo_distribution(values, label, method_name, true_value=None, bins=30):
 # -----------------------------
 # Main wrapper
 # -----------------------------
-def loo_sensitivity_analysis(z, mu, sigma_mu, case="1D", n_samples=None, strategy="random"):
+def loo_sensitivity_analysis(z, mu, sigma_mu, case="1D", n_samples=None, strategy="random", prior_type="flat"):
     """
     Run LOO sensitivity for a given case (1D, 2D, 3D) with optional subsampling.
-
-    Parameters
-    ----------
-    z, mu, sigma_mu : array-like
-        Supernova dataset.
-    case : str
-        '1D', '2D', or '3D' → which parameters to vary.
-    n_samples : int, optional
-        Number of LOO points to sample (if None, uses all points).
-    strategy : str
-        Sampling strategy if n_samples is set. Currently supports "random".
+    
+    prior_type: "flat" or "gaussian" → determines the prior used in MCMC
     """
-
     cfg = configure_model(case)
 
     # ------------------------
@@ -187,13 +177,14 @@ def loo_sensitivity_analysis(z, mu, sigma_mu, case="1D", n_samples=None, strateg
     # ------------------------
     true_chi2, _, _ = run_supernova_chi2(
         z, mu, sigma_mu,
-        flat=cfg["flat"], fix_H0=cfg["fix_H0"],
+        flat_universe=cfg["flat"], fix_H0=cfg["fix_H0"],
         output=False
     )
 
     true_samples, true_stats = run_supernova_mcmc(
         z, mu, sigma_mu,
-        flat=cfg["flat"], fix_H0=cfg["fix_H0"],
+        flat_universe=cfg["flat"], fix_H0=cfg["fix_H0"],
+        prior_type=prior_type,      # <-- Pass prior_type
         output=False
     )
 
@@ -221,7 +212,7 @@ def loo_sensitivity_analysis(z, mu, sigma_mu, case="1D", n_samples=None, strateg
         # ------------------
         bf_chi2, _, _ = run_supernova_chi2(
             z_loo, mu_loo, sigma_loo,
-            flat=cfg["flat"], fix_H0=cfg["fix_H0"],
+            flat_universe=cfg["flat"], fix_H0=cfg["fix_H0"],
             output=False
         )
 
@@ -230,7 +221,8 @@ def loo_sensitivity_analysis(z, mu, sigma_mu, case="1D", n_samples=None, strateg
         # ------------------
         samples, stats = run_supernova_mcmc(
             z_loo, mu_loo, sigma_loo,
-            flat=cfg["flat"], fix_H0=cfg["fix_H0"],
+            flat_universe=cfg["flat"], fix_H0=cfg["fix_H0"],
+            prior_type=prior_type,      # <-- Pass prior_type
             output=False
         )
 
@@ -261,15 +253,16 @@ def loo_sensitivity_analysis(z, mu, sigma_mu, case="1D", n_samples=None, strateg
     return results_chi2, results_mcmc, true_chi2, true_stats
 
 
+
 # -----------------------------
 # Example usage
 # -----------------------------
 # For large datasets (~750 points), sample 100 points for LOO
 # 1D: flat + H0 fixed
-#results_chi2_1d, results_mcmc_1d, _, _ = loo_sensitivity_analysis(z, mu, sigma_mu, case="1D", n_samples=10)
+results_chi2_1d, results_mcmc_1d, _, _ = loo_sensitivity_analysis(z, mu, sigma_mu, case="1D", n_samples=10, prior_type="flat")
 
 # 2D: flat
-results_chi2_2d, results_mcmc_2d, _, _ = loo_sensitivity_analysis(z, mu, sigma_mu, case="2D", n_samples=10)
+results_chi2_2d, results_mcmc_2d, _, _ = loo_sensitivity_analysis(z, mu, sigma_mu, case="2D", n_samples=10, prior_type="flat")
 
 # 3D: curved
-#results_chi2_3d, results_mcmc_3d, _, _ = loo_sensitivity_analysis(z, mu, sigma_mu, case="3D", n_samples=10)
+results_chi2_3d, results_mcmc_3d, _, _ = loo_sensitivity_analysis(z, mu, sigma_mu, case="3D", n_samples=10, prior_type="flat")

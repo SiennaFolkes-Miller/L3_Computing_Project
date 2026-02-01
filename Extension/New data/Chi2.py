@@ -174,22 +174,22 @@ def plot_chi2_corner(best_fit, chi2_min, z, mu, sigma_mu,
     plt.show()
 
 def run_supernova_chi2(z, mu, sigma_mu, Omega_L_init=0.7, Omega_k_init=0.0, H0_init=70.0,
-                        flat=False, fix_H0=False, H0_fixed=70.0, output=True):
+                        flat_universe=False, fix_H0=False, H0_fixed=70.0, output=True):
     # Initial guess
     p0 = [Omega_L_init]
-    if not flat:
+    if not flat_universe:
         p0.append(Omega_k_init)
     if not fix_H0:
         p0.append(H0_init)
 
     # Minimise
-    result = minimize(chi2, p0, args=(z, mu, sigma_mu, flat, fix_H0, H0_fixed),
+    result = minimize(chi2, p0, args=(z, mu, sigma_mu, flat_universe, fix_H0, H0_fixed),
                       method='Nelder-Mead', options={'maxiter':10000, 'disp': True})
     best_fit = result.x
     chi2_min = result.fun
 
     # Asymmetric errors
-    errors = chi2_errors(best_fit, chi2_min, z, mu, sigma_mu, flat, fix_H0, H0_fixed)
+    errors = chi2_errors(best_fit, chi2_min, z, mu, sigma_mu, flat_universe, fix_H0, H0_fixed)
     n_params = len(best_fit)
     dof = len(z) - n_params
     chi2_red = chi2_min / dof
@@ -197,7 +197,7 @@ def run_supernova_chi2(z, mu, sigma_mu, Omega_L_init=0.7, Omega_k_init=0.0, H0_i
     if output:
         print("\nBest-fit parameters:")
         for name, val, (lo, hi) in zip(
-            ['Omega_L', 'Omega_k', 'H0'][:len(best_fit)],
+            ['Omega_L', 'H0', 'Omega_k'][:len(best_fit)],
             best_fit, errors
         ):
             print(f"{name} = {val:.4g} -{lo:.4g} +{hi:.4g}")
@@ -207,7 +207,7 @@ def run_supernova_chi2(z, mu, sigma_mu, Omega_L_init=0.7, Omega_k_init=0.0, H0_i
         plot_chi2_corner(
             best_fit, chi2_min,
             z, mu, sigma_mu,
-            flat, fix_H0, H0_fixed
+            flat_universe, fix_H0, H0_fixed
         )
 
     
@@ -216,10 +216,10 @@ def run_supernova_chi2(z, mu, sigma_mu, Omega_L_init=0.7, Omega_k_init=0.0, H0_i
 # Example calls
 # -----------------------------
 # 1D: flat + H0 fixed
-#best_flat_1D, chi2_flat_1D, errors_flat_1D = run_supernova_chi2(z, mu, sigma_mu, flat=True, fix_H0=True, output=True)
+best_flat_1D, chi2_flat_1D, errors_flat_1D = run_supernova_chi2(z, mu, sigma_mu, flat_universe=True, fix_H0=True, output=True)
 
 # 2D: flat
-#best_flat_2D, chi2_flat_2D, errors_flat_2D = run_supernova_chi2(z, mu, sigma_mu, flat=True, fix_H0=False, output=True)
+#best_flat_2D, chi2_flat_2D, errors_flat_2D = run_supernova_chi2(z, mu, sigma_mu, flat_universe=True, fix_H0=False, output=True)
 
 # 3D: curved
-#best_curve_3D, chi2_curve_3D, errors_curve_3D = run_supernova_chi2(z, mu, sigma_mu, flat=False, fix_H0=False, output=True)
+#best_curve_3D, chi2_curve_3D, errors_curve_3D = run_supernova_chi2(z, mu, sigma_mu, flat_universe=False, fix_H0=False, output=True)
