@@ -32,7 +32,8 @@ def run_supernova_mcmc(
     Omega_L_init=0.7,
     Omega_k_init=0.0,
     H0_init=70.0,
-    flat=False,
+    prior_type="flat",      # <-- NEW
+    flat_universe=False,    # <-- NEW
     fix_H0=False,
     H0_fixed=70.0,
     nwalkers=32,
@@ -51,7 +52,7 @@ def run_supernova_mcmc(
     # Dimensionality
     # ------------------------
     ndim = 1
-    if not flat:
+    if not flat_universe:
         ndim += 1
     if not fix_H0:
         ndim += 1
@@ -65,7 +66,7 @@ def run_supernova_mcmc(
     pos[:, idx] = Omega_L_init + 1e-2 * np.random.randn(nwalkers)
     idx += 1
 
-    if not flat:
+    if not flat_universe:
         pos[:, idx] = Omega_k_init + 1e-2 * np.random.randn(nwalkers)
         idx += 1
 
@@ -80,8 +81,8 @@ def run_supernova_mcmc(
         Omega_L = theta[idx]
         idx += 1
 
-        Omega_k = theta[idx] if not flat else 0.0
-        if not flat:
+        Omega_k = theta[idx] if not flat_universe else 0.0
+        if not flat_universe:
             idx += 1
 
         H0_val = theta[idx] if not fix_H0 else H0_fixed
@@ -89,7 +90,8 @@ def run_supernova_mcmc(
         return log_posterior(
             [Omega_L, Omega_k, H0_val],
             z, mu_obs, mu_err,
-            flat=flat
+            prior_type=prior_type,
+            flat_universe=flat_universe
         )
 
     # ------------------------
@@ -109,7 +111,7 @@ def run_supernova_mcmc(
     # Labels
     # ------------------------
     labels = [r"$\Omega_\Lambda$"]
-    if not flat:
+    if not flat_universe:
         labels.append(r"$\Omega_k$")
     if not fix_H0:
         labels.append(r"$H_0$")
@@ -160,10 +162,11 @@ def run_supernova_mcmc(
     return samples, stats
 
 # 1D: ΩΛ only (flat, H0 fixed)
-#run_supernova_mcmc(z, mu, sigma_mu, flat=True, fix_H0=True, output=True)
+#run_supernova_mcmc(z, mu, sigma_mu, prior_type="flat", flat_universe=True, fix_H0=True, output=True)
 
 # 2D: ΩΛ + H0 (flat)
-#run_supernova_mcmc(z, mu, sigma_mu, flat=True, fix_H0=False, output=True)
+#run_supernova_mcmc(z, mu, sigma_mu, prior_type="flat", flat_universe=True, fix_H0=False, output=True)
 
 # 3D: ΩΛ + Ωk + H0
-run_supernova_mcmc(z, mu, sigma_mu, flat=False, fix_H0=False, output=True)
+run_supernova_mcmc(z, mu, sigma_mu, prior_type="flat", flat_universe=False, fix_H0=False, output=True)
+run_supernova_mcmc(z, mu, sigma_mu, prior_type="gaussian", flat_universe=False, fix_H0=False, output=True)
