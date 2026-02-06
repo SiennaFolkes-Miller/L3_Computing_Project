@@ -162,11 +162,11 @@ def run_supernova_mcmc(
     return samples, stats
 
 # 1D: ΩΛ only (flat, H0 fixed)
-run_supernova_mcmc(z, mu, sigma_mu, prior_type="flat", flat_universe=True, fix_H0=True, output=True)
+#run_supernova_mcmc(z, mu, sigma_mu, prior_type="flat", flat_universe=True, fix_H0=True, output=True)
 
 # 2D: ΩΛ + H0 (flat)
 #run_supernova_mcmc(z, mu, sigma_mu, prior_type="flat", flat_universe=True, fix_H0=False, output=True)
 
 # 3D: ΩΛ + Ωk + H0
-#run_supernova_mcmc(z, mu, sigma_mu, prior_type="flat", flat_universe=False, fix_H0=False, output=True)
-#run_supernova_mcmc(z, mu, sigma_mu, prior_type="gaussian", flat_universe=False, fix_H0=False, output=True)
+run_supernova_mcmc(z, mu, sigma_mu, prior_type="flat", flat_universe=False, fix_H0=False, output=True)
+run_supernova_mcmc(z, mu, sigma_mu, prior_type="gaussian", flat_universe=False, fix_H0=False, output=True)
