@@ -360,4 +360,4 @@ best_flat_2D, chi2_flat_2D, errors_flat_2D = run_supernova_chi2(
 )
 
 # 3D: curved
-#best_curve_3D, chi2_curve_3D, errors_curve_3D = run_supernova_chi2(z, mu, sigma_mu, flat_universe=False, fix_H0=False, output=True)
+best_curve_3D, chi2_curve_3D, errors_curve_3D = run_supernova_chi2(z, mu, sigma_mu, flat_universe=False, fix_H0=False, output=True)

@@ -40,7 +40,7 @@ def run_redshift_scan(
             sig_sel,
             prior_type=prior_type,
             flat_universe=flat_universe,
-            fix_H0=fix_H0,
+            fix_H0=fix_H0, nwalkers=50, nsteps=3000,discard=600,thin=1,
             output=output
         )
 

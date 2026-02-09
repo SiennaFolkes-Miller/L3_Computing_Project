@@ -10,7 +10,7 @@ def posterior_predictive(
     z,
     mu_err,
     samples,
-    nsamples=200,
+    nsamples=700,
     flat_universe=False,
     fix_H0=False,
     H0_fixed=70.0
@@ -62,16 +62,16 @@ def plot_ppc(z, mu_obs, mu_pp):
 if __name__ == "__main__":
     samples, _ = run_supernova_mcmc(
         z, mu, sigma_mu,
-        prior_type="flat",
-        flat_universe=False,
-        fix_H0=False,
+        prior_type="flat_wide",
+        flat_universe=True,
+        fix_H0=True,
         output=False
     )
 
     mu_pp = posterior_predictive(
         z, sigma_mu, samples,
-        flat_universe=False,
-        fix_H0=False
+        flat_universe=True,
+        fix_H0=True
     )
 
     plot_ppc(z, mu, mu_pp)
