@@ -169,27 +169,69 @@ Ok_chi2_vals = [unpack(x)[0] for x in Ok_chi2]
 Ok_chi2_errs = np.array([[unpack(x)[1] for x in Ok_chi2],
                          [unpack(x)[2] for x in Ok_chi2]])
 
-plot_evolution(dims, offset, OL_mcmc_vals, OL_mcmc_errs,
-               OL_chi2_vals, OL_chi2_errs,
-               r"$\Omega_\Lambda$",
-               r"Evolution of $\mathbf{\Omega_\Lambda}$",
-               literature_val=0.6847,
-               literature_err=(0.0073, 0.0073),
-               legend_loc='upper left')
+#plot_evolution(dims, offset, OL_mcmc_vals, OL_mcmc_errs,OL_chi2_vals, OL_chi2_errs,r"$\Omega_\Lambda$",r"Evolution of $\mathbf{\Omega_\Lambda}$",literature_val=0.6847,literature_err=(0.0073, 0.0073),legend_loc='upper left')
 
-plot_evolution(dims, offset, H0_mcmc_vals, H0_mcmc_errs,
-               H0_chi2_vals, H0_chi2_errs,
-               r"$H_0\ \mathrm{[km\,s^{-1}\,Mpc^{-1}]}$",
-               r"Evolution of $\mathbf{H_0}$",
-               literature_val=67.36,
-               literature_err=(0.54, 0.54),
-               legend_loc='lower left')
+#plot_evolution(dims, offset, H0_mcmc_vals, H0_mcmc_errs,H0_chi2_vals, H0_chi2_errs,r"$H_0\ \mathrm{[km\,s^{-1}\,Mpc^{-1}]}$",r"Evolution of $\mathbf{H_0}$",literature_val=67.36,literature_err=(0.54, 0.54),legend_loc='lower left')
 
-plot_evolution(dims, offset, Ok_mcmc_vals, Ok_mcmc_errs,
-               Ok_chi2_vals, Ok_chi2_errs,
-               r"$\Omega_k$",
-               r"Evolution of $\mathbf{\Omega_k}$",
-               literature_val=0.0007,
-               literature_err=(0.0019, 0.0019),
-               legend_loc='upper left')
+#plot_evolution(dims, offset, Ok_mcmc_vals, Ok_mcmc_errs,Ok_chi2_vals, Ok_chi2_errs,r"$\Omega_k$",r"Evolution of $\mathbf{\Omega_k}$",literature_val=0.0007,literature_err=(0.0019, 0.0019),legend_loc='upper left')
 
+
+
+def plot_q1_vs_q2_with_errors(
+    q1, q1_minus, q1_plus,
+    q2, q2_minus, q2_plus,
+    xlabel, ylabel
+):
+    """
+    Plot quantity 1 vs quantity 2 with asymmetric error bars.
+    Ordering assumed:
+    [flat wide, flat narrow, cmb gaussian, cmb directional]
+    """
+
+    labels = [
+        "Flat wide",
+        "Flat narrow",
+        "CMB Gaussian",
+        "CMB directional"
+    ]
+
+    colors = [
+        "#A6CEE3",  # light blue
+        "#B2DF8A",  # light green
+        "#FB9A99",  # light red
+        "#FDBF6F"   # light orange
+    ]
+
+    markers = ["o", "s", "^", "D"]
+
+    plt.figure(figsize=(6, 6))
+
+    for i in range(4):
+        plt.errorbar(
+            q1[i],
+            q2[i],
+            xerr=[[-q1_minus[i]], [q1_plus[i]]],
+            yerr=[[-q2_minus[i]], [q2_plus[i]]],
+            fmt=markers[i],
+            color=colors[i],
+            capsize=4,
+            markersize=7,
+            label=labels[i]
+        )
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend(fontsize=11)
+    plt.tight_layout()
+    plt.show()
+
+plot_q1_vs_q2_with_errors(
+    omega_L_3D,
+    omega_L_3D_minus_errors,
+    omega_L_3D_plus_errors,
+    H0_3D,
+    H0_3D_minus_errors,
+    H0_3D_plus_errors,
+    xlabel=r"$\Omega_\Lambda$",
+    ylabel=r"$H_0\ \mathrm{[km\,s^{-1}\,Mpc^{-1}]}$"
+)
