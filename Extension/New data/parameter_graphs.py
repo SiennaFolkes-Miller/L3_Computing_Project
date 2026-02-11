@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
+AXIS_LABEL_SIZE = 18
+TICK_LABEL_SIZE = 15
+LEGEND_SIZE = 14
+TITLE_SIZE = 18
+
 script_dir = os.path.dirname(os.path.abspath(__file__))  # folder of your script
 file_path = os.path.join(script_dir, "CP_results.xlsx")
 
@@ -74,28 +79,54 @@ def plot_evolution(dims, offset,
                    literature_val=None,
                    literature_err=None,
                    legend_loc='upper left'):
+
     plt.figure(figsize=(7, 6))
 
-    # Plot MCMC and chi^2 with asymmetric error bars
-    plt.errorbar(dims - offset, mcmc_vals, yerr=mcmc_errs, fmt='o', label='MCMC', color='blue', capsize=4)
-    plt.errorbar(dims + offset, chi2_vals, yerr=chi2_errs, fmt='s', label=r'$\chi^2$', color='red', capsize=4)
+    # -------------------------
+    # Plot MCMC and chi^2 points
+    # -------------------------
+    plt.errorbar(
+        dims - offset, mcmc_vals, yerr=mcmc_errs,
+        fmt='o', capsize=4, color='purple', label='MCMC'
+    )
+    plt.errorbar(
+        dims + offset, chi2_vals, yerr=chi2_errs,
+        fmt='s', capsize=4, color='olive', label=r'$\chi^2$'
+    )
 
-    # Plot literature central line and dashed error bars
+    # -------------------------
+    # Literature reference line and shaded region
+    # -------------------------
     if literature_val is not None:
-        plt.axhline(y=literature_val, color='green', linestyle='-', label='Literature', linewidth=2)
+        # Central line
+        plt.axhline(literature_val, color='darkgrey', lw=2, label='Literature')
+
+        # Shaded uncertainty band
         if literature_err is not None:
             if isinstance(literature_err, (list, tuple, np.ndarray)):
                 lower, upper = literature_err
             else:
                 lower = upper = literature_err
-            plt.axhline(y=literature_val - lower, color='green', linestyle='--')
-            plt.axhline(y=literature_val + upper, color='green', linestyle='--')
 
-    plt.xticks(dims, dims)
-    plt.xlabel("Dimensionality", fontsize=14)
-    plt.ylabel(ylabel, fontsize=14)
-    plt.title(title, fontsize=18, fontweight='bold')
-    plt.legend(loc=legend_loc)
+            plt.fill_between(
+                [min(dims)-0.2, max(dims)+0.2],
+                literature_val - lower,
+                literature_val + upper,
+                color='darkgrey', alpha=0.3
+            )
+
+    # -------------------------
+    # Axes labels, ticks, title, legend
+    # -------------------------
+    plt.xticks(dims, dims, fontsize=TICK_LABEL_SIZE)
+    plt.yticks(fontsize=TICK_LABEL_SIZE)
+
+    plt.xlabel("Dimensionality", fontsize=AXIS_LABEL_SIZE)
+    plt.ylabel(ylabel, fontsize=AXIS_LABEL_SIZE)
+    plt.title(title, fontsize=TITLE_SIZE)
+
+    plt.legend(loc=legend_loc, fontsize=LEGEND_SIZE)
+
     plt.tight_layout()
     plt.show()
 
@@ -169,47 +200,45 @@ Ok_chi2_vals = [unpack(x)[0] for x in Ok_chi2]
 Ok_chi2_errs = np.array([[unpack(x)[1] for x in Ok_chi2],
                          [unpack(x)[2] for x in Ok_chi2]])
 
-#plot_evolution(dims, offset, OL_mcmc_vals, OL_mcmc_errs,OL_chi2_vals, OL_chi2_errs,r"$\Omega_\Lambda$",r"Evolution of $\mathbf{\Omega_\Lambda}$",literature_val=0.6847,literature_err=(0.0073, 0.0073),legend_loc='upper left')
+plot_evolution(dims, offset, OL_mcmc_vals, OL_mcmc_errs,OL_chi2_vals, OL_chi2_errs,r"$\Omega_\Lambda$",r"Evolution of $\mathbf{\Omega_\Lambda}$",literature_val=0.6847,literature_err=(0.0073, 0.0073),legend_loc='upper left')
 
 #plot_evolution(dims, offset, H0_mcmc_vals, H0_mcmc_errs,H0_chi2_vals, H0_chi2_errs,r"$H_0\ \mathrm{[km\,s^{-1}\,Mpc^{-1}]}$",r"Evolution of $\mathbf{H_0}$",literature_val=67.36,literature_err=(0.54, 0.54),legend_loc='lower left')
 
 #plot_evolution(dims, offset, Ok_mcmc_vals, Ok_mcmc_errs,Ok_chi2_vals, Ok_chi2_errs,r"$\Omega_k$",r"Evolution of $\mathbf{\Omega_k}$",literature_val=0.0007,literature_err=(0.0019, 0.0019),legend_loc='upper left')
 
 
-
 def plot_q1_vs_q2_with_errors(
-    q1, q1_minus, q1_plus,
-    q2, q2_minus, q2_plus,
+    q1, q1_minus, q1_plus, q1_literature, q1_lit_err,
+    q2, q2_minus, q2_plus, q2_literature, q2_lit_err,
     xlabel, ylabel
 ):
     """
-    Plot quantity 1 vs quantity 2 with asymmetric error bars.
-    Ordering assumed:
-    [flat wide, flat narrow, cmb gaussian, cmb directional]
+    Plot quantity 1 vs quantity 2 with asymmetric error bars and literature reference.
+
+    Parameters
+    ----------
+    q1, q2 : arrays
+        Best-fit values of the 4 points
+    q1_minus, q1_plus, q2_minus, q2_plus : arrays
+        Asymmetric errors
+    q1_literature, q2_literature : float
+        Literature central values
+    q1_lit_err, q2_lit_err : float or tuple
+        Literature error (symmetric or asymmetric)
+    xlabel, ylabel : str
+        Axis labels
     """
 
-    labels = [
-        "Flat wide",
-        "Flat narrow",
-        "CMB Gaussian",
-        "CMB directional"
-    ]
-
-    colors = [
-        "#A6CEE3",  # light blue
-        "#B2DF8A",  # light green
-        "#FB9A99",  # light red
-        "#FDBF6F"   # light orange
-    ]
-
+    labels = ["Flat wide", "Flat narrow", "CMB Gaussian", "CMB directional"]
+    colors = ['blue', 'green', 'red', 'orange']
     markers = ["o", "s", "^", "D"]
 
     plt.figure(figsize=(6, 6))
 
+    # Plot the 4 best-fit points with asymmetric error bars
     for i in range(4):
         plt.errorbar(
-            q1[i],
-            q2[i],
+            q1[i], q2[i],
             xerr=[[-q1_minus[i]], [q1_plus[i]]],
             yerr=[[-q2_minus[i]], [q2_plus[i]]],
             fmt=markers[i],
@@ -219,19 +248,74 @@ def plot_q1_vs_q2_with_errors(
             label=labels[i]
         )
 
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(fontsize=11)
+    # -------------------------
+    # Literature central lines
+    # -------------------------
+    plt.axvline(q1_literature, color='darkgrey', lw=2, linestyle='-')
+    plt.axhline(q2_literature, color='darkgrey', lw=2, linestyle='-')
+
+    # -------------------------
+    # Literature uncertainty bands (shaded)
+    # -------------------------
+    # Handle asymmetric or symmetric errors
+    if isinstance(q1_lit_err, (list, tuple, np.ndarray)):
+        plt.fill_betweenx(
+            [min(q2)-0.1, max(q2)+0.1],
+            q1_literature - q1_lit_err[0],
+            q1_literature + q1_lit_err[1],
+            color='grey', alpha=0.3
+        )
+    else:
+        plt.fill_betweenx(
+            [min(q2)-0.1, max(q2)+0.1],
+            q1_literature - q1_lit_err,
+            q1_literature + q1_lit_err,
+            color='grey', alpha=0.3
+        )
+
+    if isinstance(q2_lit_err, (list, tuple, np.ndarray)):
+        plt.fill_between(
+            [min(q1)-0.1, max(q1)+0.1],
+            q2_literature - q2_lit_err[0],
+            q2_literature + q2_lit_err[1],
+            color='grey', alpha=0.3
+        )
+    else:
+        plt.fill_between(
+            [min(q1)-0.1, max(q1)+0.1],
+            q2_literature - q2_lit_err,
+            q2_literature + q2_lit_err,
+            color='grey', alpha=0.3
+        )
+
+    # -------------------------
+    # Axes labels, ticks, legend
+    # -------------------------
+    plt.xlabel(xlabel, fontsize=AXIS_LABEL_SIZE)
+    plt.ylabel(ylabel, fontsize=AXIS_LABEL_SIZE)
+    plt.xticks(fontsize=TICK_LABEL_SIZE)
+    plt.yticks(fontsize=TICK_LABEL_SIZE)
+    plt.legend(fontsize=12)
+
     plt.tight_layout()
     plt.show()
+
+
+
+#literature_val=0.6847,literature_err=(0.0073, 0.0073)
+#literature_val=67.36,literature_err=(0.54, 0.54)
+#literature_val=0.0007,literature_err=(0.0019, 0.0019)
 
 plot_q1_vs_q2_with_errors(
     omega_L_3D,
     omega_L_3D_minus_errors,
     omega_L_3D_plus_errors,
-    H0_3D,
-    H0_3D_minus_errors,
-    H0_3D_plus_errors,
+    0.6847, 0.0073,
+    omega_k_3D,
+    omega_k_3D_minus_errors,
+    omega_k_3D_plus_errors,
+    0.0007, 0.0019,
     xlabel=r"$\Omega_\Lambda$",
-    ylabel=r"$H_0\ \mathrm{[km\,s^{-1}\,Mpc^{-1}]}$"
+    #ylabel=r"$H_0\ \mathrm{[km\,s^{-1}\,Mpc^{-1}]}$"
+    ylabel=r"$\Omega_k$"
 )
