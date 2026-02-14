@@ -81,26 +81,12 @@ def plot_evolution(dims, offset,
                    legend_loc='upper left'):
 
     plt.figure(figsize=(7, 6))
-
-    # -------------------------
-    # Plot MCMC and chi^2 points
-    # -------------------------
-    plt.errorbar(
-        dims - offset, mcmc_vals, yerr=mcmc_errs,
-        fmt='o', capsize=4, color='purple', label='MCMC'
-    )
-    plt.errorbar(
-        dims + offset, chi2_vals, yerr=chi2_errs,
-        fmt='s', capsize=4, color='olive', label=r'$\chi^2$'
-    )
-
     # -------------------------
     # Literature reference line and shaded region
     # -------------------------
+    x_left = min(dims) - 0.2
+    x_right = max(dims) + 0.2
     if literature_val is not None:
-        # Central line
-        plt.axhline(literature_val, color='darkgrey', lw=2, label='Literature')
-
         # Shaded uncertainty band
         if literature_err is not None:
             if isinstance(literature_err, (list, tuple, np.ndarray)):
@@ -109,18 +95,27 @@ def plot_evolution(dims, offset,
                 lower = upper = literature_err
 
             plt.fill_between(
-                [min(dims)-0.2, max(dims)+0.2],
+                [x_left, x_right],
                 literature_val - lower,
                 literature_val + upper,
                 color='darkgrey', alpha=0.3
             )
+        plt.axhline(literature_val, color='darkgrey', lw=2, label='Literature')
 
+    plt.errorbar(
+        dims - offset, mcmc_vals, yerr=mcmc_errs,
+        fmt='o', capsize=4, color='teal', label='MCMC'
+    )
+    plt.errorbar(
+        dims + offset, chi2_vals, yerr=chi2_errs,
+        fmt='s', capsize=4, color='olive', label=r'$\chi^2$'
+    )
     # -------------------------
     # Axes labels, ticks, title, legend
     # -------------------------
     plt.xticks(dims, dims, fontsize=TICK_LABEL_SIZE)
     plt.yticks(fontsize=TICK_LABEL_SIZE)
-
+    plt.xlim(x_left, x_right)
     plt.xlabel("Dimensionality", fontsize=AXIS_LABEL_SIZE)
     plt.ylabel(ylabel, fontsize=AXIS_LABEL_SIZE)
     plt.title(title, fontsize=TITLE_SIZE)
@@ -200,105 +195,151 @@ Ok_chi2_vals = [unpack(x)[0] for x in Ok_chi2]
 Ok_chi2_errs = np.array([[unpack(x)[1] for x in Ok_chi2],
                          [unpack(x)[2] for x in Ok_chi2]])
 
-plot_evolution(dims, offset, OL_mcmc_vals, OL_mcmc_errs,OL_chi2_vals, OL_chi2_errs,r"$\Omega_\Lambda$",r"Evolution of $\mathbf{\Omega_\Lambda}$",literature_val=0.6847,literature_err=(0.0073, 0.0073),legend_loc='upper left')
+#plot_evolution(dims, offset, OL_mcmc_vals, OL_mcmc_errs,OL_chi2_vals, OL_chi2_errs,r"$\Omega_\Lambda$",r"Evolution of $\mathbf{\Omega_\Lambda}$",literature_val=0.6847,literature_err=(0.0073, 0.0073),legend_loc='upper left')
 
 #plot_evolution(dims, offset, H0_mcmc_vals, H0_mcmc_errs,H0_chi2_vals, H0_chi2_errs,r"$H_0\ \mathrm{[km\,s^{-1}\,Mpc^{-1}]}$",r"Evolution of $\mathbf{H_0}$",literature_val=67.36,literature_err=(0.54, 0.54),legend_loc='lower left')
 
-#plot_evolution(dims, offset, Ok_mcmc_vals, Ok_mcmc_errs,Ok_chi2_vals, Ok_chi2_errs,r"$\Omega_k$",r"Evolution of $\mathbf{\Omega_k}$",literature_val=0.0007,literature_err=(0.0019, 0.0019),legend_loc='upper left')
+#plot_evolution(dims, offset, Ok_mcmc_vals, Ok_mcmc_errs,Ok_chi2_vals, Ok_chi2_errs,r"$\Omega_k$",r"Evolution of $\mathbf{\Omega_k}$",literature_val=0,literature_err=(0, 0),legend_loc='upper left')
 
 
-def plot_q1_vs_q2_with_errors(
-    q1, q1_minus, q1_plus, q1_literature, q1_lit_err,
-    q2, q2_minus, q2_plus, q2_literature, q2_lit_err,
-    xlabel, ylabel
-):
-    """
-    Plot quantity 1 vs quantity 2 with asymmetric error bars and literature reference.
 
-    Parameters
-    ----------
-    q1, q2 : arrays
-        Best-fit values of the 4 points
-    q1_minus, q1_plus, q2_minus, q2_plus : arrays
-        Asymmetric errors
-    q1_literature, q2_literature : float
-        Literature central values
-    q1_lit_err, q2_lit_err : float or tuple
-        Literature error (symmetric or asymmetric)
-    xlabel, ylabel : str
-        Axis labels
-    """
 
-    labels = ["Flat wide", "Flat narrow", "CMB Gaussian", "CMB directional"]
-    colors = ['blue', 'green', 'red', 'orange']
-    markers = ["o", "s", "^", "D"]
 
-    plt.figure(figsize=(6, 6))
+# Plot styling constants
+AXIS_LABEL_SIZE = 18
+TICK_LABEL_SIZE = 15
+LEGEND_SIZE = 14
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+import corner
+from MCMC import run_supernova_mcmc
 
-    # Plot the 4 best-fit points with asymmetric error bars
-    for i in range(4):
-        plt.errorbar(
-            q1[i], q2[i],
-            xerr=[[-q1_minus[i]], [q1_plus[i]]],
-            yerr=[[-q2_minus[i]], [q2_plus[i]]],
-            fmt=markers[i],
-            color=colors[i],
-            capsize=4,
-            markersize=7,
-            label=labels[i]
-        )
+# -------------------------
+# CONFIGURATION
+# -------------------------
+priors = ["flat_wide", "flat_narrow", "cmb_gaussian", "cmb_directional"]
+colors = ["blue", "green", "red", "orange"]
+markers = ["o", "s", "^", "D"]
 
-    # -------------------------
-    # Literature central lines
-    # -------------------------
-    plt.axvline(q1_literature, color='darkgrey', lw=2, linestyle='-')
-    plt.axhline(q2_literature, color='darkgrey', lw=2, linestyle='-')
+output_dir = "saved_samples"
+os.makedirs(output_dir, exist_ok=True)
 
-    # -------------------------
-    # Literature uncertainty bands (shaded)
-    # -------------------------
-    # Handle asymmetric or symmetric errors
-    if isinstance(q1_lit_err, (list, tuple, np.ndarray)):
-        plt.fill_betweenx(
-            [min(q2)-0.1, max(q2)+0.1],
-            q1_literature - q1_lit_err[0],
-            q1_literature + q1_lit_err[1],
-            color='grey', alpha=0.3
-        )
+# -------------------------
+# LOAD DATA
+# -------------------------
+# Replace with your actual z, mu, sigma_mu arrays
+from new_data_splitting import z, mu, sigma_mu
+import matplotlib.colors as mcolors
+
+posterior_dict = {}
+stats_dict = {}
+
+for prior in priors:
+    filename = os.path.join(output_dir, f"samples_{prior}.npz")
+
+    if os.path.exists(filename):
+        # Load previously saved samples
+        data = np.load(filename, allow_pickle=True)
+        samples = data["samples"]
+        stats = dict(data["stats"].item())
+        print(f"Loaded samples for {prior}")
     else:
-        plt.fill_betweenx(
-            [min(q2)-0.1, max(q2)+0.1],
-            q1_literature - q1_lit_err,
-            q1_literature + q1_lit_err,
-            color='grey', alpha=0.3
+        # Run MCMC for this prior
+        flat_universe = True  # Adjust depending on your prior
+        samples, stats = run_supernova_mcmc(
+            z, mu, sigma_mu,
+            prior_type=prior,
+            flat_universe=flat_universe,
+            fix_H0=False,
+            nwalkers=75,
+            nsteps=3000,
+            discard=600,
+            output=False
+        )
+        # Save for later
+        np.savez(filename, samples=samples, stats=stats)
+        print(f"Saved samples for {prior}")
+
+    posterior_dict[prior] = samples
+    stats_dict[prior] = stats
+
+# -------------------------
+# PLOT 2D CONTOURS
+# -------------------------
+plt.figure(figsize=(8, 6))
+
+priors = ["flat_narrow", "cmb_gaussian", "cmb_directional"]
+labels = ['Flat', 'CMB Gaussian', 'CMB Directional']
+colors = ["blue", "orange", "red"]
+markers = ["o", "s", "^"]
+for i, prior in enumerate(priors):
+    samples = posterior_dict[prior]
+
+    # Corner style: get the first two columns (Omega_L, H0)
+    x = samples[:, 0]  # Omega_L
+    y = samples[:, 1]  # H0
+
+    # Compute 2D histogram for contour
+    H, xedges, yedges = np.histogram2d(x, y, bins=100, density=True)
+    X, Y = np.meshgrid(xedges[:-1], yedges[:-1])
+    
+    # Levels for 68% credible region
+    # Flatten H and compute threshold
+    H_flat = H.flatten()
+    H_sort = np.sort(H_flat)[::-1]
+    cumsum = np.cumsum(H_sort)
+    cumsum /= cumsum[-1]
+    # Find value corresponding to 68%
+    level_68 = H_sort[np.searchsorted(cumsum, 0.68)]
+    level_95 = H_sort[np.searchsorted(cumsum, 0.95)]
+    base_color = colors[i]
+    lighter_color = mcolors.to_rgba(base_color, alpha=0.3)
+    
+    plt.contour(X, Y, H.T, levels=[level_95], colors=[lighter_color], linewidths=2, linestyles='--')
+    plt.contour(X, Y, H.T, levels=[level_68], colors=[base_color], linewidths=2)
+
+    # Plot best-fit point
+    best_H0 = stats_dict[prior]["$H_0$"][0]
+    best_OL = stats_dict[prior]["$\\Omega_\\Lambda$"][0]
+    OL_minus = -omega_L_2D_minus_errors[i]
+    OL_plus = omega_L_2D_plus_errors[i]
+    H0_minus = -H0_2D_minus_errors[i]
+    H0_plus = H0_2D_plus_errors[i]
+    plt.errorbar(
+        best_OL, best_H0,
+        xerr=[[OL_minus], [OL_plus]],
+        yerr=[[H0_minus], [H0_plus]],
+        fmt=markers[i],
+        color=colors[i],
+        markersize=8,
+        capsize=4,
+        label=f"{labels[i]}"
         )
 
-    if isinstance(q2_lit_err, (list, tuple, np.ndarray)):
-        plt.fill_between(
-            [min(q1)-0.1, max(q1)+0.1],
-            q2_literature - q2_lit_err[0],
-            q2_literature + q2_lit_err[1],
-            color='grey', alpha=0.3
-        )
-    else:
-        plt.fill_between(
-            [min(q1)-0.1, max(q1)+0.1],
-            q2_literature - q2_lit_err,
-            q2_literature + q2_lit_err,
-            color='grey', alpha=0.3
-        )
+# Optional: literature values
+lit_OL = 0.6847
+lit_H0 = 67.36
+#plt.axvline(lit_OL, color="grey", lw=2, linestyle="--")
+#plt.axhline(lit_H0, color="grey", lw=2, linestyle="--")
 
-    # -------------------------
-    # Axes labels, ticks, legend
-    # -------------------------
-    plt.xlabel(xlabel, fontsize=AXIS_LABEL_SIZE)
-    plt.ylabel(ylabel, fontsize=AXIS_LABEL_SIZE)
-    plt.xticks(fontsize=TICK_LABEL_SIZE)
-    plt.yticks(fontsize=TICK_LABEL_SIZE)
-    plt.legend(fontsize=12)
+all_OL = np.concatenate([posterior_dict[p][:,0] for p in priors])
+all_H0 = np.concatenate([posterior_dict[p][:,1] for p in priors])
+margin_OL = (all_OL.max() - all_OL.min()) * 0.05  # 5% margin
+margin_H0 = (all_H0.max() - all_H0.min()) * 0.05
+plt.xlim(all_OL.min() - margin_OL, all_OL.max() + margin_OL)
+plt.ylim(all_H0.min() - margin_H0, all_H0.max() + margin_H0)
 
-    plt.tight_layout()
-    plt.show()
+plt.xlabel(r"$\Omega_\Lambda$", fontsize=16)
+plt.ylabel(r"$H_0$ [km/s/Mpc]", fontsize=16)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+plt.legend(fontsize=12)
+#plt.title("2D posterior contours for different priors", fontsize=16)
+plt.tight_layout()
+#plt.show()
+
+
 
 
 
@@ -306,16 +347,130 @@ def plot_q1_vs_q2_with_errors(
 #literature_val=67.36,literature_err=(0.54, 0.54)
 #literature_val=0.0007,literature_err=(0.0019, 0.0019)
 
-plot_q1_vs_q2_with_errors(
-    omega_L_3D,
-    omega_L_3D_minus_errors,
-    omega_L_3D_plus_errors,
-    0.6847, 0.0073,
-    omega_k_3D,
-    omega_k_3D_minus_errors,
-    omega_k_3D_plus_errors,
-    0.0007, 0.0019,
-    xlabel=r"$\Omega_\Lambda$",
-    #ylabel=r"$H_0\ \mathrm{[km\,s^{-1}\,Mpc^{-1}]}$"
-    ylabel=r"$\Omega_k$"
+
+
+
+from Priors_posteriors import log_prior
+from matplotlib.patches import Rectangle, Patch
+from matplotlib.lines import Line2D
+
+# Grid
+H0_vals = np.linspace(50, 85, 300)
+OmegaL_vals = np.linspace(0.5, 0.9, 300)
+
+H0_grid, OmegaL_grid = np.meshgrid(H0_vals, OmegaL_vals)
+
+prior_types = ["flat_wide", "flat_narrow", "cmb_gaussian", "cmb_directional"]
+colors = {
+    "flat_wide": "green",
+    "flat_narrow": "blue",
+    "cmb_gaussian": "orange",
+    "cmb_directional": "red"
+}
+
+plt.figure(figsize=(8, 6))
+ax = plt.gca()
+
+legend_elements = []
+
+# --------------------------------------------------
+# 1️⃣ Flat priors (shaded boxes)
+# --------------------------------------------------
+
+# flat_wide limits
+#rect_fw = Rectangle((0.0, 40.0),  # bottom left (OmegaL, H0)1.5,          # width in OmegaL60.0,         # height in H0 (100 - 40)facecolor=colors["flat_wide"],alpha=0.1)
+#ax.add_patch(rect_fw)
+
+#legend_elements.append(Patch(facecolor=colors["flat_wide"], alpha=0.2,label="Flat wide prior"))
+
+# flat_narrow limits
+rect_fn = Rectangle(
+    (0.6, 60.0),
+    0.2,      # 0.8 - 0.6
+    15.0,     # 75 - 60
+    facecolor=colors["flat_narrow"],
+    alpha=0.15
 )
+ax.add_patch(rect_fn)
+
+legend_elements.append(
+    Patch(facecolor=colors["flat_narrow"], alpha=0.3,
+          label="Flat")
+)
+
+# --------------------------------------------------
+# 2️⃣ Gaussian priors (contours)
+# --------------------------------------------------
+prior_labels = {
+    "cmb_gaussian": "CMB Gaussian",
+    "cmb_directional": "CMB Directional"
+}
+
+for prior in ["cmb_gaussian", "cmb_directional"]:
+
+    logP = np.zeros_like(H0_grid)
+
+    for ix in range(H0_grid.shape[0]):
+        for iy in range(H0_grid.shape[1]):
+            theta = [OmegaL_grid[ix, iy], 0.0, H0_grid[ix, iy]]
+            logP[ix, iy] = log_prior(
+                theta,
+                prior_type=prior,
+                flat_universe=True
+            )
+
+    logP -= np.nanmax(logP)
+    P = np.exp(logP)
+    P /= np.sum(P)
+
+    P_flat = P.flatten()
+    P_sort = np.sort(P_flat)[::-1]
+    cumsum = np.cumsum(P_sort)
+    cumsum /= cumsum[-1]
+
+    level_68 = P_sort[np.searchsorted(cumsum, 0.68)]
+    level_95 = P_sort[np.searchsorted(cumsum, 0.95)]
+
+    # 95% dashed
+    ax.contour(
+        OmegaL_vals,
+        H0_vals,
+        P.T,
+        levels=[level_95],
+        colors=[colors[prior]],
+        linestyles="--"
+    )
+
+    # 68% solid
+    ax.contour(
+        OmegaL_vals,
+        H0_vals,
+        P.T,
+        levels=[level_68],
+        colors=[colors[prior]],
+        linewidths=2
+    )
+
+    legend_elements.append(
+        Line2D([0], [0],
+               color=colors[prior],
+               lw=2,
+               label=f"{prior_labels[prior]} (68%)")
+    )
+
+# --------------------------------------------------
+# 3️⃣ Final formatting
+# --------------------------------------------------
+
+ax.set_xlim(0.55, 0.85)
+ax.set_ylim(55, 80)
+
+ax.set_xlabel(r"$\Omega_\Lambda$", fontsize=16)
+ax.set_ylabel(r"$H_0$ [km/s/Mpc]", fontsize=16)
+ax.tick_params(axis='both', labelsize=14)
+#ax.set_title("Visualisation of Priors in $H_0$–$\Omega_\Lambda$ Space")
+
+ax.legend(handles=legend_elements, fontsize=12)
+
+plt.tight_layout()
+plt.show()

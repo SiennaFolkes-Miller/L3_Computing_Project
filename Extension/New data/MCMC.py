@@ -25,9 +25,10 @@ def plot_1d_posterior(samples, label):
     )
 
     # Percentile lines with legend labels
-    plt.axvline(p16, linestyle='--', linewidth=2, color='black', label='16%')
-    plt.axvline(p50, linestyle='--', linewidth=2.5, color='black', label='median')
-    plt.axvline(p84, linestyle='--', linewidth=2, color='black', label='84%')
+    plt.axvline(p16, linestyle='--', linewidth=2, color='orange', label='16%')
+    #plt.axvline(p50, linestyle='--', linewidth=2.5, color='black', label='median')
+    plt.axvline(p50, linestyle='-', linewidth=3, color='red', label='median')
+    plt.axvline(p84, linestyle='--', linewidth=2, color='orange', label='84%')
 
     # Axis labels (larger, not bold)
     plt.xlabel(label, fontsize=18)
@@ -42,7 +43,7 @@ def plot_1d_posterior(samples, label):
         rf"{label} = {p50:.3g}$^{{+{p84-p50:.3g}}}_{{-{p50-p16:.3g}}}$",
         fontsize=17
     )
-
+    plt.legend(loc = 'upper right')
     plt.tight_layout()
     plt.show()
 
@@ -233,4 +234,5 @@ def run_supernova_mcmc(
 
     return samples, stats
 
-
+from new_data_splitting import z, mu, sigma_mu
+#run_supernova_mcmc(z, mu, sigma_mu, Omega_L_init = 0.7, Omega_k_init = 0.0, H0_init = 70.0, prior_type="flat_wide", flat_universe=True, fix_H0=True, H0_fixed = 70.0, nwalkers=50, nsteps=2000,discard=400,thin=1,output=True)
