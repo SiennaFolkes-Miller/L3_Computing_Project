@@ -1,7 +1,7 @@
 # redshift_scan.py
 import numpy as np
 from new_data_splitting import z, mu, sigma_mu
-from MCMC_graphs import run_supernova_mcmc  # rename if needed
+from MCMC import run_supernova_mcmc  # rename if needed
 
 def apply_redshift_cut(z, mu, sigma_mu, zmin=0.0, zmax=None):
     mask = np.ones_like(z, dtype=bool)
@@ -51,6 +51,3 @@ def run_redshift_scan(
         }
 
     return results
-
-zmax_values = np.linspace(0.1, np.max(z), 6)
-run_redshift_scan(zmax_values,prior_type="flat_wide",flat_universe=False,fix_H0=False)

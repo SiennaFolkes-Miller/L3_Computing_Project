@@ -4,23 +4,45 @@ import matplotlib.pyplot as plt
 import corner
 from Priors_posteriors import log_posterior
 
+
 def plot_1d_posterior(samples, label):
     """
     Plot a 1D posterior histogram with 16/50/84 percentiles.
+    Publication-quality formatting (thicker lines, larger fonts, nice median/percentile lines).
     """
     p16, p50, p84 = np.percentile(samples, [16, 50, 84])
 
-    plt.figure(figsize=(4, 4))
-    plt.hist(samples, bins=40, density=True, histtype='step', color='black')
-    plt.axvline(p16, linestyle='--', color='black')
-    plt.axvline(p50, linestyle='-', color='black')
-    plt.axvline(p84, linestyle='--', color='black')
+    plt.figure(figsize=(5.5, 4.5))
 
-    plt.xlabel(label)
-    plt.ylabel("Posterior density")
-    plt.title(
-        rf"{label} = {p50:.3g}$^{{+{p84-p50:.3g}}}_{{-{p50-p16:.3g}}}$"
+    # Histogram
+    plt.hist(
+        samples,
+        bins=40,
+        density=True,
+        histtype='step',
+        linewidth=2,
+        color='black'
     )
+
+    # Percentile lines with legend labels
+    plt.axvline(p16, linestyle='--', linewidth=2, color='black', label='16%')
+    plt.axvline(p50, linestyle='--', linewidth=2.5, color='black', label='median')
+    plt.axvline(p84, linestyle='--', linewidth=2, color='black', label='84%')
+
+    # Axis labels (larger, not bold)
+    plt.xlabel(label, fontsize=18)
+    plt.ylabel("Posterior density", fontsize=18)
+
+    # Larger tick labels
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+
+    # Title with median and uncertainties
+    plt.title(
+        rf"{label} = {p50:.3g}$^{{+{p84-p50:.3g}}}_{{-{p50-p16:.3g}}}$",
+        fontsize=17
+    )
+
     plt.tight_layout()
     plt.show()
 
@@ -44,8 +66,7 @@ def run_supernova_mcmc(
 ):
     """
     MCMC runner for supernova cosmology with autocorrelation diagnostics.
-
-    Automatically computes autocorrelation times and suggests burn-in/thinning.
+    Combines publication-quality plots with detailed diagnostics.
     """
 
     # ------------------------
@@ -140,24 +161,29 @@ def run_supernova_mcmc(
         labels.append(r"$H_0$")
 
     # ------------------------
-    # Diagnostics (trace + corner)
+    # Diagnostics (trace + corner/1D posterior)
     # ------------------------
     if output:
         print(f"\nMean acceptance fraction: {np.mean(sampler.acceptance_fraction):.3f}")
         print(f"Flat samples shape: {samples.shape}")
 
         # Trace plots
-        fig, axes = plt.subplots(ndim, figsize=(10, 6), sharex=True)
+        fig, axes = plt.subplots(ndim, figsize=(10, 4), sharex=True)
         if ndim == 1:
             axes = [axes]
 
+        chain = sampler.get_chain()
         for i in range(ndim):
-            axes[i].plot(sampler.get_chain()[:, :, i], alpha=0.3)
-            axes[i].set_ylabel(labels[i])
-        axes[-1].set_xlabel("Step")
+            axes[i].plot(chain[:, :, i], alpha=0.35, linewidth=1)
+            axes[i].set_ylabel(labels[i], fontsize=18)
+            axes[i].tick_params(axis='both', labelsize=15)
+            axes[i].set_xlim(0, chain.shape[0] - 1)
+
+        axes[-1].set_xlabel("Step", fontsize=18)
+        plt.tight_layout()
         plt.show()
 
-        # Corner plot or 1D posterior
+        # Posterior plot
         if ndim == 1:
             plot_1d_posterior(samples[:, 0], labels[0])
         else:
@@ -166,12 +192,17 @@ def run_supernova_mcmc(
                 labels=labels,
                 quantiles=[0.16, 0.5, 0.84],
                 show_titles=True,
-                title_fmt=".3g"
+                title_fmt=".3g",
+                label_kwargs={"fontsize": 18},
+                title_kwargs={"fontsize": 16},
+                tick_kwargs={"labelsize": 14}
             )
             plt.show()
 
+    # ------------------------
+    # Covariance / eigenvalues
+    # ------------------------
     if ndim >= 2:
-    # 2D or 3D case: full covariance
         cov_matrix = np.cov(samples.T)
         eigvals, eigvecs = np.linalg.eigh(cov_matrix)
         cond_number = np.max(eigvals) / np.min(eigvals)
@@ -182,14 +213,14 @@ def run_supernova_mcmc(
             print(eigvals)
             print(f"Condition number: {cond_number:.2g}")
     else:
-    # 1D case: just variance
         cov_matrix = np.var(samples, ddof=1)
         eigvals = np.array([cov_matrix])
         cond_number = np.nan
         if output:
             print(f"\n1D variance: {cov_matrix:.5g}")
             print("Eigenvalues not applicable for 1D")
-            print("Condition number not applicable for 1D")  
+            print("Condition number not applicable for 1D")
+
     # ------------------------
     # Parameter summaries
     # ------------------------
@@ -201,4 +232,5 @@ def run_supernova_mcmc(
             print(f"{name} = {p50:.4g} -{p50-p16:.4g} +{p84-p50:.4g}")
 
     return samples, stats
+
 

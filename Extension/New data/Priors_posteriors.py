@@ -3,7 +3,8 @@ import astropy.units as u
 from models import distance_modulus
 from scipy.stats import norm
 from scipy.stats import multivariate_normal
-from cmb_directional import cmb_directional_logprior
+from CMB_directional_data import cmb_center, cmb_icov
+
 
 
 def log_prior(theta, prior_type="flat_wide", flat_universe=False):
@@ -37,29 +38,43 @@ def log_prior(theta, prior_type="flat_wide", flat_universe=False):
         return 0.0
 
     if prior_type == "cmb_gaussian":
-        logp = 0.0
-        logp += norm.logpdf(Omega_L, 0.6847, 0.0073*10)
-        logp += norm.logpdf(H0, 67.36, 0.54*10)
-        logp += norm.logpdf(Omega_k, 0.0007, 0.0019*10)
+        if not flat_universe:
+            return -np.inf
+        mu_H0 = 67.36
+        mu_OmegaL = 1.0 - 0.3153 
+        var_H0 = (0.54*5)**2
+        var_OmegaL = (0.0073*5)**2
+        logp  = norm.logpdf(H0, mu_H0, np.sqrt(var_H0))
+        logp += norm.logpdf(Omega_L, mu_OmegaL, np.sqrt(var_OmegaL))
         return logp
 
     if prior_type == "cmb_directional":
-        # Standard deviations and correlation matrix
-        sigma = np.array([0.01, 5.0, 0.01])
-        rho = np.array([
-            [1.0, 0.5, -0.7],
-            [0.5, 1.0, -0.6],
-            [-0.7, -0.6, 1.0]
-        ])
-        cov_cmb = np.outer(sigma, sigma) * rho
-        icov_cmb = np.linalg.inv(cov_cmb)
+    # Ensure flat universe
+        if not flat_universe:
+            return -np.inf
 
-        # Parameter vector
-        p = np.array([Omega_L, H0, Omega_k])
-        diff = p - np.array([0.6847, 67.36, 0.0007])
-        logp = -0.5 * diff @ icov_cmb @ diff
-        return logp
-        #return cmb_directional_logprior(theta)
+    # -----------------------
+    # Clip parameters to avoid unphysical values
+    # Adjust these bounds if needed
+        if H0 <= 0 or H0 < 50 or H0 > 100:
+            return -np.inf
+        if Omega_L < 0 or Omega_L > 2:
+            return -np.inf
+
+    # Compute the prior (Gaussian with cmb_center and covariance)
+        diff = np.array([H0, Omega_L]) - cmb_center
+
+    # Check for NaN in diff or icov
+        if not np.all(np.isfinite(diff)) or not np.all(np.isfinite(cmb_icov)):
+            return -np.inf
+
+        lp = -0.5 * diff @ cmb_icov @ diff
+
+    # Ensure the prior value is finite
+        if not np.isfinite(lp):
+            return -np.inf
+
+        return lp
 
     raise ValueError(f"Unknown prior_type: {prior_type}")
 
